@@ -28,12 +28,6 @@ class Conversation(models.Model):
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    def save(self, *args, **kwargs) -> None:
-        if self.invitee:
-            raise IntegrityError("This conversation is already full!")
-
-        super().save(*args, **kwargs)
-
 
 class Message(models.Model):
     conversation = models.ForeignKey(
