@@ -1,8 +1,10 @@
 import uuid
-from typing import Iterable, Optional
 
 from accounts.models import User
-from django.db import IntegrityError, models
+from django.db import models
+from django.db.models.constraints import CheckConstraint
+from django.db.models.expressions import F
+from django.db.models.query_utils import Q
 from django.utils.translation import gettext_lazy as _
 
 
@@ -27,6 +29,14 @@ class Conversation(models.Model):
     )
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=~Q(creator=F("invitee")),
+                name="check_creator_invitee_not_same",
+            )
+        ]
 
 
 class Message(models.Model):
