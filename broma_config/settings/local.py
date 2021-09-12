@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from django.contrib.messages import constants as messages
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = "django-insecure-$il=spr8s01-qe(hiipln77_1oq*!l7std0e@h2h_%n=0*a!2a"
@@ -89,3 +91,11 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "alert alert-primary",
+    messages.INFO: "alert alert-info",
+    messages.SUCCESS: "alert alert-success",
+    messages.ERROR: "alert alert-danger",
+    messages.WARNING: "alert alert-warning",
+}

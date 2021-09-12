@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    {% if username %}
+    <div class="col-lg-8 my-3">
+        <div class="card">
+            <div class="card-header text-center lead fw-bold">
+                Join a conversation
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="conversationID" class="form-label">Conversation ID:</label>
+                    <input type="text" class="form-control" id="conversationID" placeholder="b6559317-dd09-4ed0-9a06-3cb163f31db3">
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-lg btn-success" id="join-conversation">Join conversation!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8 my-3">
+        <div class="card">
+            <div class="card-header text-center lead fw-bold">
+                Create a conversation
+            </div>
+            <div class="card-body">
+                <div id="create-conversation-div"></div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-lg btn-info" id="create-conversation">Create conversation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-lg-8 my-3">
+        <div class="card">
+            <div class="card-header text-center lead fw-bold">
+                Pick a username
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username:</label>
+                    <input type="text" class="form-control" id="username" placeholder="johndoe">
+                    <div id="usernameHelp" class="form-text">Alphanumeric, -, ., _ are allowed. Min 4 characters. Max 25 characters.</div>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-primary" id="pickUsernameBtn">Continue!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    {% if username %}
+    const createConversationDiv = document.querySelector("#create-conversation-div");
+    const createConversationBtn = document.querySelector("#create-conversation");
+
+    const conversationIdInputDiv = document.querySelector("#conversationID");
+    const joinConversationBtn = document.querySelector("#join-conversation");
+    {% else %}
+    const usernameInputDiv = document.querySelector("#username");
+    const pickUsernameBtn = document.querySelector("#pickUsernameBtn");
+    {% endif %}
+
+    const messagesDiv = document.querySelector(".messages");
+
+    const fetchPostOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        }
+    };
+
+    {% if not username %}
+    pickUsernameBtn.onclick = (e) => {
+        e.preventDefault();
+
+        e.target.disabled = true;
+        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        const usernameInput = usernameInputDiv.value;
+
+        if(!usernameInput){
+            usernameInputDiv.classList.add('is-invalid');
+            messagesDiv.insertAdjacentHTML('beforeend', `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Username field cannot be empty!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`);
+
+            e.target.disabled = false;
+            e.target.innerHTML = 'Continue';
+
+            return;
+        }
+
+        if (!/^([a-z0-9]|[-._](?![-._])){4,25}$/.test(usernameInput)){
+            usernameInputDiv.classList.add('is-invalid');
+            messagesDiv.insertAdjacentHTML('beforeend', `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Username is invalid! Please choose a valid one.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`);
+
+            e.target.disabled = false;
+            e.target.innerHTML = 'Continue';
+
+            return;
+        }
+
+        const body = JSON.stringify({username: usernameInput});
+
+        fetch("{% url 'accounts:pick-username' %}", {...fetchPostOptions, body})
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                messagesDiv.insertAdjacentHTML('beforeend', `
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`);
+
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 500);
+            })
+            .catch((error) => {
+                if (typeof error.json === 'function') {
+                    error.json().then((apiError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${apiError.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    }).catch((genericError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${genericError.statusText}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    })
+                } else {
+                    console.log(error);
+                }
+
+                usernameInputDiv.classList.add('is-invalid');
+            });
+
+        e.target.disabled = false;
+        e.target.innerHTML = 'Continue';
+        usernameInputDiv.classList.remove('is-invalid');
+    }
+
+    {% else %}
+    createConversationBtn.onclick = (e) => {
+        e.preventDefault();
+
+        e.target.disabled = true;
+        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+
+        fetch("{% url 'chats:create-conversation' %}", fetchPostOptions)
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response)
+                }
+                return response.json()
+            })
+            .then((data) => {
+                createConversationDiv.innerHTML = `
+                    <div class="mb-3">
+                        <label for="conversationID" class="form-label">Conversation ID:</label>
+                        <input type="text" class="form-control" id="conversationID" value="${data.data.conversation_id}" disabled>
+                    </div>`
+            })
+            .catch((error) => {
+                if (typeof error.json === 'function') {
+                    error.json().then((apiError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${apiError.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    }).catch((genericError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${genericError.statusText}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    })
+                } else {
+                    console.log(error)
+                }
+            });
+
+        e.target.disabled = false;
+        e.target.innerHTML = 'Create conversation'
+    }
+
+    joinConversationBtn.onclick = (e) => {
+        e.preventDefault();
+
+        e.target.disabled = true;
+        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+
+        const conversationIDInput = conversationIdInputDiv.value;
+
+        if(!conversationIDInput){
+            conversationIdInputDiv.classList.add('is-invalid');
+            messagesDiv.insertAdjacentHTML('beforeend', `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Conversation ID field cannot be empty!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`);
+
+            e.target.disabled = false;
+            e.target.innerHTML = 'Continue';
+
+            return;
+        }
+
+        const body = JSON.stringify({conversation_id: usernameInput});
+
+        fetch("{% url 'chats:join-conversation' %}", {...fetchPostOptions, body})
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                messagesDiv.insertAdjacentHTML('beforeend', `
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`);
+
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 500);
+            })
+            .catch((error) => {
+                if (typeof error.json === 'function') {
+                    error.json().then((apiError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${apiError.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    }).catch((genericError) => {
+                        messagesDiv.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${genericError.statusText}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`);
+                    })
+                } else {
+                    console.log(error);
+                }
+
+                usernameInputDiv.classList.add('is-invalid');
+            });
+
+        e.target.disabled = false;
+        e.target.innerHTML = 'Continue';
+        usernameInputDiv.classList.remove('is-invalid');
+    }
+    {% endif %}
+</script>
+{% endblock scripts %}
