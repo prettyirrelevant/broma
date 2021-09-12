@@ -52,6 +52,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "broma_config.wsgi.application"
 
+ASGI_APPLICATION = "broma_config.asgi.application"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
