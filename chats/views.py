@@ -9,13 +9,6 @@ from django.views.decorators.http import require_GET, require_POST
 from .models import Conversation, User
 
 
-@require_GET
-def index(request: HttpRequest) -> HttpResponse:
-    username = request.session.get("username")
-
-    return render(request, "index.html", {"title": "Broma", "username": username})
-
-
 @require_POST
 def create_conversation(request: HttpRequest) -> JsonResponse:
     session_username = request.session.get("username")
@@ -105,23 +98,24 @@ def join_conversation(request: HttpRequest) -> JsonResponse:
 
 
 # TODO: make username check a decorator
+@require_GET
 def view_conversation(request: HttpRequest, id: str) -> HttpResponse:
     username = request.session.get("username")
     if not username:
         messages.error(request, "You need to pick username to join a conversation!")
-        return redirect(reverse("chats:index"))
+        return redirect(reverse("core:index"))
 
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         messages.error(request, "Conversation does not exist!")
-        return redirect(reverse("chats:index"))
+        return redirect(reverse("core:index"))
 
     try:
         conversation = Conversation.objects.get(id=id)
     except Conversation.DoesNotExist:
         messages.error(request, "Conversation does not exist!")
-        return redirect(reverse("chats:index"))
+        return redirect(reverse("core:index"))
 
     # checks if the user is either a creator or an invitee
     if conversation.creator == user or conversation.invitee == user:
@@ -132,5 +126,5 @@ def view_conversation(request: HttpRequest, id: str) -> HttpResponse:
         )
 
     # if the user is neither
-    messages.error(request, "Sorry, you cannot join the conversation!")
-    return redirect(reverse("chats:index"))
+    messages.error(request, "Sorry, you cannot join this conversation!")
+    return redirect(reverse("core:index"))
