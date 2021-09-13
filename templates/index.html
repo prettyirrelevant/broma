@@ -134,7 +134,7 @@
 
                 setTimeout(() => {
                     window.location.reload(true);
-                }, 500);
+                }, 1000);
             })
             .catch((error) => {
                 if (typeof error.json === 'function') {
@@ -230,7 +230,7 @@
             return;
         }
 
-        const body = JSON.stringify({conversation_id: usernameInput});
+        const body = JSON.stringify({conversation_id: conversationIDInput});
 
         fetch("{% url 'chats:join-conversation' %}", {...fetchPostOptions, body})
             .then((response) => {
@@ -247,7 +247,7 @@
                     </div>`);
 
                 setTimeout(() => {
-                    window.location.reload(true);
+                    window.location.replace(`${window.location.origin}/conversations/${data.data.conversation_id}/`)
                 }, 500);
             })
             .catch((error) => {
@@ -269,12 +269,12 @@
                     console.log(error);
                 }
 
-                usernameInputDiv.classList.add('is-invalid');
+                conversationIdInputDiv.classList.add('is-invalid');
             });
 
         e.target.disabled = false;
         e.target.innerHTML = 'Continue';
-        usernameInputDiv.classList.remove('is-invalid');
+        conversationIdInputDiv.classList.remove('is-invalid');
     }
     {% endif %}
 </script>

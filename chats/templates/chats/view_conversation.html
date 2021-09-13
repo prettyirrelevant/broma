@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 my-1">
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Conversation data is deleted after 24 hours. Enjoy!!!
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    let wsUrl;
+    const conversationID = "{{ conversation.id }}";
+    const isSecure = "https:" === window.location.protocol ? true: false ;
+
+    if (isSecure){
+        wsUrl = 'wss://' + window.location.host + '/ws/chat/' + conversationID + '/';
+    } else {
+        wsUrl = 'ws://' + window.location.host + '/ws/chat/' + conversationID + '/';
+    }
+
+    const ws = new WebSocket(wsUrl);
+    ws.onopen = (e) => {
+        console.log(e);
+    };
+
+    ws.onmessage = (e) => {
+        console.log(e);
+    };
+
+    ws.onclose = (e) => {
+        console.log(e)
+    };
+
+    ws.onerror = (e) => {
+        console.log(e)
+    };
+</script>
+{% endblock scripts %}
