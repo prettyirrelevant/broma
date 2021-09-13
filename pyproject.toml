@@ -11,6 +11,7 @@ djangorestframework = "^3.12.4"
 channels = "^3.0.4"
 django-environ = "^0.7.0"
 channels-redis = "^3.3.0"
+redis = "^3.5.3"
 
 [tool.poetry.dev-dependencies]
 
