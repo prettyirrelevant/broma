@@ -35,6 +35,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+REDIS_URL = "redis://localhost:6379/0"
+
 ROOT_URLCONF = "broma_config.urls"
 
 TEMPLATES = [
@@ -99,4 +101,13 @@ MESSAGE_TAGS = {
     messages.SUCCESS: "alert alert-success",
     messages.ERROR: "alert alert-danger",
     messages.WARNING: "alert alert-warning",
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+        },
+    }
 }

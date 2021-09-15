@@ -1,12 +1,132 @@
 {% extends 'base.html' %}
+{% block head %}
+<style>
+    table {
+    border-collapse: separate;
+    border-spacing: 0.2em;
+    }
+</style>
+{% endblock head %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-10 my-1">
-        <div class="alert alert-info d-flex align-items-center" role="alert">
+        <div class="alert alert-info d-flex align-items-center alert-dismissible fade show" role="alert">
             <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             Conversation data is deleted after 24 hours. Enjoy!!!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% if conversation.creator and conversation.invitee %}
+        <div class="alert alert-dark d-flex align-items-center justify-content-between">
+            <div>
+                <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                2 participants
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-light position-relative" disabled>
+                @{{ conversation.creator.username }}
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle online-user" data-username="{{ conversation.creator.username }}">
+                <span class="visually-hidden">Online status</span>
+                </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-light position-relative" disabled>
+                @{{ conversation.invitee.username }}
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle online-user" data-username="{{ conversation.invitee.username }}">
+                <span class="visually-hidden">Online status</span>
+                </span>
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-secondary d-flex align-items-center justify-content-between">
+            <div>
+                <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                1 participant
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-primary position-relative" disabled>
+                @{% firstof conversation.creator.username conversation.invitee.username %}
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle online-user" data-username="{% firstof conversation.creator.username conversation.invitee.username %}">
+                <span class="visually-hidden">Online status</span>
+                </span>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <button class="btn btn-success col mx-2" type="button" id="start-new-game">Start new game</button>
+            <button class="btn btn-danger col mx-2" type="button" data-bs-toggle="modal" data-bs-target="#endCurrentGame" id="end-current-game-modal">End current game</button>
+        </div>
+        <!-- Tic Tac Toe Container -->
+        <div class="card mt-5">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-around">
+                    <!-- Character: X or O -->
+                    <div style="margin-right: 1em">
+                        <button type="button" class="btn btn-sm btn-dark position-relative" disabled>My Character: </button>
+                        <button type="button" id="my-character" class="btn btn-sm btn-dark position-relative" disabled>
+                        X
+                        </button>
+                    </div>
+                    <!-- Moves Count -->
+                    <div>
+                        <button type="button" class="btn btn-sm btn-dark position-relative" disabled>Moves: </button>
+                        <button type="button" id="moves-count" class="btn btn-sm btn-dark position-relative" disabled>
+                        0
+                        </button>
+                    </div>
+                </div>
+                <!-- My turn or not -->
+                <div>
+                    <button type="button" class="btn btn-sm btn-dark position-relative" disabled>My turn: </button>
+                    <button type="button" id="my-turn" class="btn btn-sm btn-success position-relative" disabled>
+                    Yes
+                    </button>
+                </div>
+            </div>
+            <div class="card-body table-responsive-sm pb-0">
+                <!-- Tic Tac Toe Board -->
+                <table class="table">
+                    <tr>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='0'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='1'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='2'></td>
+                    </tr>
+                    <tr>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='3'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='4'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='5'></td>
+                    </tr>
+                    <tr>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='6'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='7'></td>
+                        <td class="col-4 bg-secondary text-white fw-bold display-4 p-5 text-center rounded-3 square" data-index='8'></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End current game modal -->
+<div id="endCurrentGame" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="endCurrentGame" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">End current game</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to end this game?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-danger" id="end-current-game">Yes</button>
+            </div>
         </div>
     </div>
 </div>
@@ -14,30 +134,327 @@
 {% block scripts %}
 <script>
     let wsUrl;
-    const conversationID = "{{ conversation.id }}";
-    const isSecure = "https:" === window.location.protocol ? true: false ;
+    let activeUsers;
 
-    if (isSecure){
-        wsUrl = 'wss://' + window.location.host + '/ws/chat/' + conversationID + '/';
+    const myUsername = "{{ username }}";
+
+    const messagesDiv = document.querySelector(".messages");
+
+    const conversationID = "{{ conversation.id }}";
+    const isSecure = "https:" === window.location.protocol ? true : false;
+
+    const startNewGameBtn = document.querySelector("#start-new-game");
+    const endCurrentGameBtn = document.querySelector("#end-current-game");
+    const endCurrentGameModalBtn = document.querySelector(
+        "#end-current-game-modal"
+    );
+
+    let myTurn = true;
+    const myTurnBtn = document.querySelector("#my-turn");
+
+    let myCharacter;
+    const myCharacterBtn = document.querySelector("#my-character");
+
+    const boardSquares = document.getElementsByClassName("square");
+
+    let movesCount = 0;
+    const movesCountBtn = document.querySelector("#moves-count");
+
+    let board = [-1, -1, -1, -1, -1, -1, -1, -1, -1];
+
+    const WINS_INDICES = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+
+    if (isSecure) {
+        wsUrl =
+            "wss://" +
+            window.location.host +
+            "/ws/conversations/" +
+            conversationID +
+            "/";
     } else {
-        wsUrl = 'ws://' + window.location.host + '/ws/chat/' + conversationID + '/';
+        wsUrl =
+            "ws://" +
+            window.location.host +
+            "/ws/conversations/" +
+            conversationID +
+            "/";
     }
 
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(wsUrl, ["Token", "{{ username }}"]);
+
     ws.onopen = (e) => {
         console.log(e);
     };
 
     ws.onmessage = (e) => {
+        const payload = JSON.parse(e.data);
+        const event = payload.event;
+
+        switch (event) {
+            case "conversations.online_users":
+                handleConversationOnlineUsers(payload.users);
+                break;
+
+            case "conversations.game":
+                handleConversationGame(payload);
+                break;
+            default:
+                alert("Invalid event!");
+        }
+    };
+
+    // TODO: display toast on websocket close and error
+    ws.onclose = (e) => {
         console.log(e);
     };
 
-    ws.onclose = (e) => {
-        console.log(e)
+    ws.onerror = (e) => {
+        console.log(e);
     };
 
-    ws.onerror = (e) => {
-        console.log(e)
+    // you cannot end a game when it does not exist
+    endCurrentGameModalBtn.disabled = true;
+
+    startNewGameBtn.onclick = (e) => {
+        e.preventDefault();
+        const data = { event: "conversations.game", action: "START" };
+
+        ws.send(JSON.stringify(data));
     };
+
+    endCurrentGameBtn.onclick = (e) => {
+        e.preventDefault();
+
+        const endCurrentGameModal = bootstrap.Modal.getInstance(
+            document.querySelector("#endCurrentGame"),
+        );
+
+        // hide the modal
+        endCurrentGameModal.hide();
+
+        const data = {
+            event: "conversations.game",
+            action: "END",
+            message: { info: `@${myUsername} ended the game`, isForcefulEnd: true },
+        };
+        ws.send(JSON.stringify(data));
+    };
+
+    const resetGame = () => {
+        startNewGameBtn.disabled = false;
+        endCurrentGameModalBtn.disabled = true;
+
+        board = [-1, -1, -1, -1, -1, -1, -1, -1, -1];
+
+        movesCount = 0;
+        movesCountBtn.innerHTML = movesCount;
+
+        myTurn = true;
+        myTurnBtn.innerHTML = "Yes";
+        myTurnBtn.classList.replace("btn-danger", "btn-success");
+
+        Array.from(boardSquares).forEach((square) => {
+            square.innerHTML = "";
+        });
+    };
+
+    const startGame = () => {
+        startNewGameBtn.disabled = true;
+        endCurrentGameModalBtn.disabled = false;
+
+        board = [-1, -1, -1, -1, -1, -1, -1, -1, -1];
+
+        movesCount = 0;
+        movesCountBtn.innerHTML = movesCount;
+
+        myTurn = true;
+        myTurnBtn.innerHTML = "Yes";
+        myTurnBtn.classList.replace("btn-danger", "btn-success");
+
+        Array.from(boardSquares).forEach((square) => {
+            square.innerHTML = "";
+        });
+
+        Array.from(boardSquares).forEach((square) => {
+            square.addEventListener("click", (e) => {
+                const index = e.target.dataset.index;
+                if (board[index] === -1) {
+                    if (!myTurn) {
+                        flashMessage(
+                            "It is not your turn! Wait for your turn!",
+                            "danger"
+                        );
+                    } else {
+                        myTurn = false;
+                        myTurnBtn.innerHTML = "No";
+                        myTurnBtn.classList.replace("btn-success", "btn-danger");
+
+                        makeMove(index, myCharacter);
+                    }
+                }
+            });
+        });
+    };
+
+    const makeMove = (index, character) => {
+        index = parseInt(index);
+
+        let data = {
+            event: "conversations.game",
+            action: "MOVE",
+            message: { index, character },
+        };
+
+        if (board[index] === -1) {
+            movesCount++;
+            movesCountBtn.innerHTML = movesCount;
+
+            if (character.choice === "X") {
+                board[index] = 1;
+            } else if (character.choice === "O") {
+                board[index] = 0;
+            } else {
+                flashMessage(
+                    "Character is not recognised! Only 'X' and 'O' are allowed!",
+                    "danger"
+                );
+                return;
+            }
+
+            ws.send(JSON.stringify(data));
+        }
+
+        boardSquares[index].innerHTML = character.choice;
+
+        const isWin = checkForWinner();
+
+        if (myTurn) {
+            if (isWin) {
+                data = {
+                    event: "conversations.game",
+                    action: "END",
+                    message: {
+                        info: `@${character.username} is the winner! Another game?`,
+                        isForcefulEnd: false,
+                    },
+                };
+                ws.send(JSON.stringify(data));
+            } else if (!isWin && movesCount == 9) {
+                data = {
+                    event: "conversations.game",
+                    action: "END",
+                    message: {
+                        info: "It is a draw. Another game?",
+                        isForcefulEnd: false,
+                    },
+                };
+                ws.send(JSON.stringify(data));
+            }
+        }
+    };
+
+    const checkForWinner = () => {
+        let win = false;
+        if (movesCount >= 5) {
+            WINS_INDICES.forEach((w) => {
+                if (checkWinIndex(w)) {
+                    win = true;
+                    // windex = w;
+                }
+            });
+        }
+
+        return win;
+    };
+
+    const checkWinIndex = (winIndex) => {
+        if (
+            board[winIndex[0]] !== -1 &&
+            board[winIndex[0]] === board[winIndex[1]] &&
+            board[winIndex[0]] === board[winIndex[2]]
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    const handleConversationOnlineUsers = (users) => {
+        const allUsers = document.getElementsByClassName("online-user");
+
+        Array.from(allUsers).forEach((user) => {
+            const myUsername = user.dataset.username;
+            if (users.includes(myUsername)) {
+                user.classList.replace("bg-danger", "bg-success");
+            } else {
+                user.classList.contains("bg-danger")
+                    ? null
+                    : user.classList.replace("bg-success", "bg-danger");
+            }
+        });
+
+        // update the `activeUsers` variable
+        activeUsers = users;
+
+        if (activeUsers.length !== 2) {
+            startNewGameBtn.disabled = true;
+            endCurrentGameBtn.disabled = true;
+        } else {
+            startNewGameBtn.disabled = false;
+            endCurrentGameBtn.disabled = false;
+        }
+    };
+
+    const handleConversationGame = (payload) => {
+        switch (payload.action) {
+            case "START":
+                myCharacter = payload.message.find(
+                    (player) => player.username === myUsername
+                );
+                myCharacterBtn.innerHTML = myCharacter.choice;
+                startGame();
+                break;
+            case "MOVE":
+                if (payload.message.character.choice != myCharacter.choice) {
+                    makeMove(payload.message.index, payload.message.character);
+
+                    myTurn = true;
+                    myTurnBtn.innerHTML = "Yes";
+                    myTurnBtn.classList.replace("btn-danger", "btn-success");
+                }
+                break;
+            case "END":
+                if (payload.message.isForcefulEnd) {
+                    flashMessage(payload.message.info, "danger");
+                } else {
+                    flashMessage(payload.message.info, "success");
+                }
+                resetGame();
+                break;
+            default:
+                alert("Invalid event");
+        }
+    };
+
+    const flashMessage = (message, status) => {
+        return messagesDiv.insertAdjacentHTML(
+            "beforeend",
+            `
+                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
+                                                    ${message}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>`
+        );
+    };
+
 </script>
 {% endblock scripts %}

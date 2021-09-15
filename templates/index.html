@@ -52,14 +52,14 @@
     {% endif %}
 </div>
 {% endblock content %}
-
-
 {% block scripts %}
 <script>
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
     {% if username %}
-    const createConversationDiv = document.querySelector("#create-conversation-div");
+    const createConversationDiv = document.querySelector(
+    "#create-conversation-div"
+    );
     const createConversationBtn = document.querySelector("#create-conversation");
 
     const conversationIdInputDiv = document.querySelector("#conversationID");
@@ -72,210 +72,195 @@
     const messagesDiv = document.querySelector(".messages");
 
     const fetchPostOptions = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        }
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+    },
     };
 
     {% if not username %}
     pickUsernameBtn.onclick = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        e.target.disabled = true;
-        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    e.target.disabled = true;
+    e.target.innerHTML +=
+        ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-        const usernameInput = usernameInputDiv.value;
+    const usernameInput = usernameInputDiv.value;
 
-        if(!usernameInput){
-            usernameInputDiv.classList.add('is-invalid');
-            messagesDiv.insertAdjacentHTML('beforeend', `
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        Username field cannot be empty!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>`);
-
-            e.target.disabled = false;
-            e.target.innerHTML = 'Continue';
-
-            return;
-        }
-
-        if (!/^([a-z0-9]|[-._](?![-._])){4,25}$/.test(usernameInput)){
-            usernameInputDiv.classList.add('is-invalid');
-            messagesDiv.insertAdjacentHTML('beforeend', `
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        Username is invalid! Please choose a valid one.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>`);
-
-            e.target.disabled = false;
-            e.target.innerHTML = 'Continue';
-
-            return;
-        }
-
-        const body = JSON.stringify({username: usernameInput});
-
-        fetch("{% url 'accounts:pick-username' %}", {...fetchPostOptions, body})
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                messagesDiv.insertAdjacentHTML('beforeend', `
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            ${data.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>`);
-
-                setTimeout(() => {
-                    window.location.reload(true);
-                }, 1000);
-            })
-            .catch((error) => {
-                if (typeof error.json === 'function') {
-                    error.json().then((apiError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${apiError.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
-                    }).catch((genericError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${genericError.statusText}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
-                    })
-                } else {
-                    console.log(error);
-                }
-
-                usernameInputDiv.classList.add('is-invalid');
-            });
+    if (!usernameInput) {
+        usernameInputDiv.classList.add("is-invalid");
+        flashMessage("Username field cannot be empty!", "danger");
 
         e.target.disabled = false;
-        e.target.innerHTML = 'Continue';
-        usernameInputDiv.classList.remove('is-invalid');
+        e.target.innerHTML = "Continue";
+
+        return;
     }
+
+    if (!/^([a-z0-9]|[-._](?![-._])){4,25}$/.test(usernameInput)) {
+        usernameInputDiv.classList.add("is-invalid");
+        flashMessage(
+            "Username is invalid! Please choose a valid one.",
+            "danger"
+        );
+
+        e.target.disabled = false;
+        e.target.innerHTML = "Continue";
+
+        return;
+    }
+
+    const body = JSON.stringify({ username: usernameInput });
+
+    fetch("{% url 'accounts:pick-username' %}", { ...fetchPostOptions, body })
+        .then((response) => {
+            if (!response.ok) {
+                return Promise.reject(response);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            flashMessage(data.message, "success");
+
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        })
+        .catch((error) => {
+            if (typeof error.json === "function") {
+                error
+                    .json()
+                    .then((apiError) => {
+                        flashMessage(apiError.message, "danger");
+                    })
+                    .catch((genericError) => {
+                        flashMessage(genericError.statusText, "danger");
+                    });
+            } else {
+                console.log(error);
+            }
+
+            usernameInputDiv.classList.add("is-invalid");
+        });
+
+    e.target.disabled = false;
+    e.target.innerHTML = "Continue";
+    usernameInputDiv.classList.remove("is-invalid");
+    };
 
     {% else %}
     createConversationBtn.onclick = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        e.target.disabled = true;
-        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+    e.target.disabled = true;
+    e.target.innerHTML +=
+        ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-        fetch("{% url 'chats:create-conversation' %}", fetchPostOptions)
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response)
-                }
-                return response.json()
-            })
-            .then((data) => {
-                createConversationDiv.innerHTML = `
+    fetch("{% url 'chats:create-conversation' %}", fetchPostOptions)
+        .then((response) => {
+            if (!response.ok) {
+                return Promise.reject(response);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            createConversationDiv.innerHTML = `
                     <div class="mb-3">
                         <label for="conversationID" class="form-label">Conversation ID:</label>
                         <input type="text" class="form-control" id="conversationID" value="${data.data.conversation_id}" disabled>
-                    </div>`
-            })
-            .catch((error) => {
-                if (typeof error.json === 'function') {
-                    error.json().then((apiError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${apiError.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
-                    }).catch((genericError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${genericError.statusText}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
+                    </div>`;
+        })
+        .catch((error) => {
+            if (typeof error.json === "function") {
+                error
+                    .json()
+                    .then((apiError) => {
+                        flashMessage(apiError.message, "danger");
                     })
-                } else {
-                    console.log(error)
-                }
-            });
+                    .catch((genericError) => {
+                        flashMessage(genericError.statusText, "danger");
+                    });
+            } else {
+                console.log(error);
+            }
+        });
 
-        e.target.disabled = false;
-        e.target.innerHTML = 'Create conversation'
-    }
+    e.target.disabled = false;
+    e.target.innerHTML = "Create conversation";
+    };
 
     joinConversationBtn.onclick = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        e.target.disabled = true;
-        e.target.innerHTML += ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+    e.target.disabled = true;
+    e.target.innerHTML +=
+        ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-        const conversationIDInput = conversationIdInputDiv.value;
+    const conversationIDInput = conversationIdInputDiv.value;
 
-        if(!conversationIDInput){
-            conversationIdInputDiv.classList.add('is-invalid');
-            messagesDiv.insertAdjacentHTML('beforeend', `
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        Conversation ID field cannot be empty!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>`);
-
-            e.target.disabled = false;
-            e.target.innerHTML = 'Continue';
-
-            return;
-        }
-
-        const body = JSON.stringify({conversation_id: conversationIDInput});
-
-        fetch("{% url 'chats:join-conversation' %}", {...fetchPostOptions, body})
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                messagesDiv.insertAdjacentHTML('beforeend', `
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            ${data.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>`);
-
-                setTimeout(() => {
-                    window.location.replace(`${window.location.origin}/conversations/${data.data.conversation_id}/`)
-                }, 500);
-            })
-            .catch((error) => {
-                if (typeof error.json === 'function') {
-                    error.json().then((apiError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${apiError.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
-                    }).catch((genericError) => {
-                        messagesDiv.insertAdjacentHTML('beforeend', `
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    ${genericError.statusText}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`);
-                    })
-                } else {
-                    console.log(error);
-                }
-
-                conversationIdInputDiv.classList.add('is-invalid');
-            });
+    if (!conversationIDInput) {
+        conversationIdInputDiv.classList.add("is-invalid");
+        flashMessage("Conversation ID field cannot be empty!", "danger");
 
         e.target.disabled = false;
-        e.target.innerHTML = 'Continue';
-        conversationIdInputDiv.classList.remove('is-invalid');
+        e.target.innerHTML = "Continue";
+
+        return;
     }
+
+    const body = JSON.stringify({ conversation_id: conversationIDInput });
+
+    fetch("{% url 'chats:join-conversation' %}", { ...fetchPostOptions, body })
+        .then((response) => {
+            if (!response.ok) {
+                return Promise.reject(response);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            flashMessage(data.message, "success");
+
+            setTimeout(() => {
+                window.location.replace(
+                    `${window.location.origin}/conversations/${data.data.conversation_id}/`
+                );
+            }, 500);
+        })
+        .catch((error) => {
+            if (typeof error.json === "function") {
+                error
+                    .json()
+                    .then((apiError) => {
+                        flashMessage(apiError.message, "danger");
+                    })
+                    .catch((genericError) => {
+                        flashMessage(genericError.statusText, "danger");
+                    });
+            } else {
+                console.log(error);
+            }
+
+            conversationIdInputDiv.classList.add("is-invalid");
+        });
+
+    e.target.disabled = false;
+    e.target.innerHTML = "Continue";
+    conversationIdInputDiv.classList.remove("is-invalid");
+    };
+
+    const flashMessage = (message, status) => {
+    return messagesDiv.insertAdjacentHTML(
+        "beforeend",
+        `
+                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
+                                                    ${message}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>`
+    );
+    };
     {% endif %}
+
 </script>
 {% endblock scripts %}
