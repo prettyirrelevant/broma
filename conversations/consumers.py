@@ -107,6 +107,7 @@ class ConversationConsumer(AsyncWebsocketConsumer):
                         "event": "conversations.video",
                         "action": "HEY",
                         "to": event["data"]["to"],
+                        "signal": event["data"]["signal"],
                         "from": event["data"]["from"],
                     }
                 )

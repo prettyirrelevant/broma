@@ -230,11 +230,7 @@
     // Video Call configurations
     let caller;
     let receiver;
-    let callingFriend = false;
     let callerSignal;
-    let callAccepted = false;
-    let callRejected = false;
-    let receivingCall = false;
 
     const callingModalDiv = document.getElementById("callingModal");
     const callingModalDivText = document.getElementById("callingModalText");
@@ -559,7 +555,6 @@
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then((stream) => {
                     caller = myUsername;
-
                     myVideoDiv.srcObject = stream;
 
                     const peer = new SimplePeer({
@@ -632,7 +627,6 @@
     const acceptCall = () => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then((stream) => {
-                console.log('Call accepted')
                 myVideoDiv.srcObject = stream;
 
                 const peer = new SimplePeer({
@@ -648,7 +642,7 @@
                 })
 
                 peer.on("stream", stream => {
-                    partnerVideo.current.srcObject = stream;
+                    recipientVideoDiv.srcObject = stream;
                 });
 
                 peer.on('error', (err)=>{
