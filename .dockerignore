@@ -1,0 +1,4 @@
+.git
+.dockerignore
+db.sqlite3
+__pycache__

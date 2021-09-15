@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  web:
+    build: ./
+    command: runserver
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-secret}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:?Allowed Hosts}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-broma_config.asgi.application}
+      - POSTGRES_DB=${POSTGRES_DB:-broma}
+      - POSTGRES_HOST=${POSTGRES_HOST:-db}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - REDIS_URL=${REDIS_URL:?Redis Url}
+      - DATABASE_URL=${DATABASE_URL:?Database Url}
+    depends_on:
+      - db
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`localhost`)"
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+
+  redis:
+    image: redis:6.2.5-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  traefik:
+    image: traefik:v2.2
+    ports:
+      - 8000:80
+      - 8081:8080
+    volumes:
+      - "$PWD/traefik.dev.toml:/etc/traefik/traefik.toml"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+volumes:
+  postgres_data:
+  redis_data:
