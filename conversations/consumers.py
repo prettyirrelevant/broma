@@ -64,10 +64,47 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.conversation_room,
                 {
-                    "type": "conversations.online_users",
+                    "type": event,
                     "data": list(redis.smembers(f"conversation:{self.conversation_id}")),
                 },
             )
+
+        elif event == "conversations.video":
+            await self.channel_layer.group_send(
+                self.conversation_room,
+                {
+                    "type": event,
+                    "data": text_data_json,
+                },
+            )
+
+    async def conversations_video(self, event):
+        """
+        A function that handles everything related to video calls.
+        """
+
+        action = event["data"]["action"]
+
+        if action == "CALL":
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "event": "conversations.video",
+                        "action": "HEY",
+                        "to": event["data"]["to"],
+                        "from": event["data"]["from"],
+                    }
+                )
+            )
+
+        elif action == "ACCEPT":
+            ...
+
+        elif action == "END":
+            ...
+
+        elif action == "REJECT":
+            ...
 
     async def conversations_game(self, event):
         """

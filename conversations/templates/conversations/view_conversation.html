@@ -2,8 +2,42 @@
 {% block head %}
 <style>
     table {
-    border-collapse: separate;
-    border-spacing: 0.2em;
+        border-collapse: separate;
+        border-spacing: 0.2em;
+    }
+
+    .myVideoContainer{
+        max-width: 9rem;
+        max-height: 9rem;
+        height: auto;
+        width: auto;
+        position: absolute;
+        top: 4.1rem;
+        left: 1.5rem;
+        z-index: 99;
+    }
+
+    .myVideo{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .recipientVideoContainer{
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        background-color: rgba(0,0,0,1);
+    }
+
+    .partnerVideo{
+        width: 100%;
+        height: 100%;
+    }
+
+    .partnerVideo.cover{
+        object-fit: cover;
     }
 </style>
 {% endblock head %}
@@ -60,7 +94,9 @@
         {% endif %}
         <div class="row">
             <button class="btn btn-success col mx-2" type="button" id="start-new-game">Start new game</button>
+            <button class="btn btn-primary col mx-2" type="button" id="start-video-call">Start video call</button>
             <button class="btn btn-danger col mx-2" type="button" data-bs-toggle="modal" data-bs-target="#endCurrentGame" id="end-current-game-modal">End current game</button>
+
         </div>
         <!-- Tic Tac Toe Container -->
         <div class="card mt-5">
@@ -112,6 +148,7 @@
         </div>
     </div>
 </div>
+
 <!-- End current game modal -->
 <div id="endCurrentGame" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="endCurrentGame" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -130,8 +167,55 @@
         </div>
     </div>
 </div>
+
+
+
+<!-- Video call div  -->
+<div class="row justify-content-center">
+    <div class="col-lg-10 my-1">
+        <div class="card">
+            <div class="card-header fw-bold text-center">
+                Video Call
+            </div>
+
+            <div class="card-body">
+
+                <!-- Participant video -->
+                <div class="recipientVideoContainer">
+                    <video poster="https://picsum.photos/200" class="recipientVideo rounded-3" playsinline muted autoplay></video>
+                </div>
+
+                <!-- User video -->
+                <div class="myVideoContainer">
+                    <video poster="https://picsum.photos/200" class="myVideo rounded-3" playsinline muted autoplay></video>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calling Modal -->
+<div id="callingModal" class="modal fade" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="endCurrentGame" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center">Video Call Request</h5>
+            </div>
+            <div class="modal-body">
+                <p id="callingModalText"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Reject</button>
+                <button type="button" class="btn btn-danger" id="end-current-game">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 {% block scripts %}
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.0/simplepeer.min.js" integrity="sha256-3oMweWrndCdkkax5au1C6gFBze9D5G6Q3t0kmaXRs+E=" crossorigin="anonymous"></script>
 <script>
     let wsUrl;
     let activeUsers;
@@ -143,6 +227,22 @@
     const conversationID = "{{ conversation.id }}";
     const isSecure = "https:" === window.location.protocol ? true : false;
 
+    // Video Call configurations
+    let caller;
+    let receiver;
+    let callingFriend = false;
+    let callerSignal;
+    let callAccepted = false;
+    let callRejected = false;
+    let receivingCall = false;
+    const startVideoCallBtn = document.querySelector("#start-video-call");
+    const myVideoDiv = document.getElementsByClassName("myVideo")[0];
+    const recipientVideoDiv = document.getElementsByClassName("recipientVideo")[0];
+
+    let myPeer;
+    // end
+
+    // Tic Tac Toe configurations
     const startNewGameBtn = document.querySelector("#start-new-game");
     const endCurrentGameBtn = document.querySelector("#end-current-game");
     const endCurrentGameModalBtn = document.querySelector(
@@ -162,6 +262,18 @@
 
     let board = [-1, -1, -1, -1, -1, -1, -1, -1, -1];
 
+    const WINS_INDICES = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+    // end
+
     // function to flash message on screen
     const flashMessage = (message, status) => {
         return messagesDiv.insertAdjacentHTML(
@@ -173,16 +285,28 @@
                                             </div>`
         );
     };
-    const WINS_INDICES = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
+
+    const displayModal = (caller) => {
+        const myModalDiv = document.querySelector("#callingModal");
+        const myModalText = document.querySelector("#callingModalText");
+
+        myModalText.innerHTML = `${caller} is trying to video call`
+
+        const myModal = bootstrap.Modal.getInstance(myModalDiv);
+        console.log(myModalDiv)
+        console.log(myModalText)
+        myModal.show();
+    }
+
+    const hideModal = () => {
+        const myModalDiv = document.querySelector("#callingModal");
+        const myModalText = document.querySelector("#callingModalText");
+
+        myModalText.innerHTML = "";
+
+        const myModal = bootstrap.Modal.getInstance(myModalDiv);
+        myModal.hide();
+    }
 
     if (isSecure) {
         wsUrl =
@@ -218,6 +342,11 @@
             case "conversations.game":
                 handleConversationGame(payload);
                 break;
+
+            case "conversations.video":
+                handleConversationVideoCall(payload);
+                break;
+
             default:
                 alert("Invalid event!");
         }
@@ -259,6 +388,11 @@
         };
         ws.send(JSON.stringify(data));
     };
+
+    startVideoCallBtn.onclick = (e) => {
+        const userToCall = activeUsers.find((user) => user != myUsername);
+        callUser(userToCall);
+    }
 
     const resetGame = () => {
         startNewGameBtn.disabled = false;
@@ -399,6 +533,125 @@
         }
     };
 
+    const endCall = () => {
+        myPeer.destroy();
+        ws.send(JSON.stringify({event:'conversations.video', action: "END", to: caller}))
+        window.location.reload();
+    };
+
+    const rejectCall = () => {
+        ws.send(JSON.stringify({event: 'conversations.video', action: 'REJECT', to: caller}));
+    };
+
+    const callUser = (recipientUsername) => {
+        // checks if callerID is not myself & if the receiver is online
+        if(recipientUsername != "" && activeUsers.includes(recipientUsername) && recipientUsername != myUsername) {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                    caller = myUsername;
+
+                    myVideoDiv.srcObject = stream;
+
+                    const peer = new SimplePeer({
+                        initiator: true,
+                        trickle: false,
+                        config: {
+                            iceServers: [
+                                {url:'stun:stun01.sipphone.com'},
+                                {url:'stun:stun.ekiga.net'},
+                                {url:'stun:stun.fwdnet.net'},
+                                {url:'stun:stun.ideasip.com'},
+                                {url:'stun:stun.iptel.org'},
+                                {url:'stun:stun.rixtelecom.se'},
+                                {url:'stun:stun.schlund.de'},
+                                {url:'stun:stun.l.google.com:19302'},
+                                {url:'stun:stun1.l.google.com:19302'},
+                                {url:'stun:stun2.l.google.com:19302'},
+                                {url:'stun:stun3.l.google.com:19302'},
+                                {url:'stun:stun4.l.google.com:19302'},
+                                {url:'stun:stunserver.org'},
+                                {url:'stun:stun.softjoys.com'},
+                                {url:'stun:stun.voiparound.com'},
+                                {url:'stun:stun.voipbuster.com'},
+                                {url:'stun:stun.voipstunt.com'},
+                                {url:'stun:stun.voxgratia.org'},
+                                {url:'stun:stun.xten.com'},
+                                {
+                                    url: 'turn:numb.viagenie.ca',
+                                    credential: 'muazkh',
+                                    username: 'webrtc@live.com'
+                                },
+                                {
+                                    url: 'turn:192.158.29.39:3478?transport=udp',
+                                    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                                    username: '28224511:1379330808'
+                                },
+                                {
+                                    url: 'turn:192.158.29.39:3478?transport=tcp',
+                                    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                                    username: '28224511:1379330808'
+                                }
+                            ]
+                        },
+                        stream: stream
+                    });
+                    myPeer = peer;
+
+                    peer.on('signal', (data) => {
+                        ws.send(JSON.stringify({event: 'conversations.video', action: 'CALL', from: myUsername, to: recipientUsername, signal: data}));
+                    });
+
+                    peer.on('stream', (stream) => {
+                        recipientVideoDiv.srcObject = stream;
+                    });
+
+                    peer.on('error', (error) => {
+                        endCall();
+                    });
+
+                })
+                .catch(() => {
+                    flashMessage("You cannot place/receive a call without granting video and audio permissions!", "danger");
+                })
+        } else {
+            flashMessage("Wrong username entered!", "danger");
+            return;
+        }
+    };
+
+    const acceptCall = () => {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+                myVideoDiv.srcObject = stream;
+
+                const peer = new SimplePeer({
+                    initiator: false,
+                    trickle: false,
+                    stream: stream,
+                });
+
+                myPeer = peer;
+
+                peer.on("signal", data => {
+                    socket.current.emit("acceptCall", { signal: data, to: caller })
+                })
+
+                peer.on("stream", stream => {
+                    partnerVideo.current.srcObject = stream;
+                });
+
+                peer.on('error', (err)=>{
+                    endCall()
+                })
+
+                peer.signal(callerSignal);
+            })
+            .catch(() => {
+                flashMessage("You cannot place/ receive a call without granting video and audio permissions!", "danger");
+            })
+
+    };
+
     const handleConversationOnlineUsers = (users) => {
         const allUsers = document.getElementsByClassName("online-user");
 
@@ -447,9 +700,11 @@
         if (activeUsers.length !== 2) {
             startNewGameBtn.disabled = true;
             endCurrentGameBtn.disabled = true;
+            startVideoCallBtn.disabled = true;
         } else {
             startNewGameBtn.disabled = false;
-            endCurrentGameBtn.disabled = false;
+            startVideoCallBtn.disabled = false;
+            endCurrentGameBtn.disabled = true;
         }
     };
 
@@ -481,6 +736,18 @@
                 break;
             default:
                 alert("Invalid event");
+        }
+    };
+
+    const handleConversationVideoCall = (payload) => {
+        switch(payload.action) {
+            case "HEY":
+                caller = payload.from;
+                callerSignal = payload.signal;
+                payload.to === myUsername ? displayModal(caller) : null;
+                break;
+            default:
+                alert('Error');
         }
     };
 </script>
