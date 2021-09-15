@@ -206,8 +206,8 @@
                 <p id="callingModalText"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Reject</button>
-                <button type="button" class="btn btn-danger" id="end-current-game">Accept</button>
+                <button type="button" class="btn btn-primary" id="reject-call">Reject</button>
+                <button type="button" class="btn btn-danger" id="accept-call">Accept</button>
             </div>
         </div>
     </div>
@@ -235,6 +235,13 @@
     let callAccepted = false;
     let callRejected = false;
     let receivingCall = false;
+
+    const callingModalDiv = document.getElementById("callingModal");
+    const callingModalDivText = document.getElementById("callingModalText");
+
+    const acceptCallBtn = document.querySelector("#accept-call");
+    const rejectCallBtn = document.querySelector("#reject-call");
+
     const startVideoCallBtn = document.querySelector("#start-video-call");
     const myVideoDiv = document.getElementsByClassName("myVideo")[0];
     const recipientVideoDiv = document.getElementsByClassName("recipientVideo")[0];
@@ -286,25 +293,17 @@
         );
     };
 
-    const displayModal = (caller) => {
-        const myModalDiv = document.querySelector("#callingModal");
-        const myModalText = document.querySelector("#callingModalText");
+    const displayCallModal = (caller) => {
+        callingModalDivText.innerHTML = `${caller} is trying to video call?`;
+        const myModal = bootstrap.Modal.getOrCreateInstance(callingModalDiv);
 
-        myModalText.innerHTML = `${caller} is trying to video call`
-
-        const myModal = bootstrap.Modal.getInstance(myModalDiv);
-        console.log(myModalDiv)
-        console.log(myModalText)
         myModal.show();
     }
 
-    const hideModal = () => {
-        const myModalDiv = document.querySelector("#callingModal");
-        const myModalText = document.querySelector("#callingModalText");
+    const hideCallModal = () => {
+        callingModalDivText.innerHTML = "";
+        const myModal = bootstrap.Modal.getOrCreateInstance(callingModalDiv);
 
-        myModalText.innerHTML = "";
-
-        const myModal = bootstrap.Modal.getInstance(myModalDiv);
         myModal.hide();
     }
 
@@ -392,7 +391,17 @@
     startVideoCallBtn.onclick = (e) => {
         const userToCall = activeUsers.find((user) => user != myUsername);
         callUser(userToCall);
-    }
+    };
+
+    acceptCallBtn.onclick = (e) => {
+        hideCallModal();
+        acceptCall();
+    };
+
+    rejectCallBtn.onclick = (e) => {
+        hideCallModal();
+        rejectCall();
+    };
 
     const resetGame = () => {
         startNewGameBtn.disabled = false;
@@ -541,6 +550,7 @@
 
     const rejectCall = () => {
         ws.send(JSON.stringify({event: 'conversations.video', action: 'REJECT', to: caller}));
+        window.location.reload();
     };
 
     const callUser = (recipientUsername) => {
@@ -622,6 +632,7 @@
     const acceptCall = () => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then((stream) => {
+                console.log('Call accepted')
                 myVideoDiv.srcObject = stream;
 
                 const peer = new SimplePeer({
@@ -633,7 +644,7 @@
                 myPeer = peer;
 
                 peer.on("signal", data => {
-                    socket.current.emit("acceptCall", { signal: data, to: caller })
+                    ws.send(JSON.stringify({event: 'conversations.video', action: "ACCEPT", signal: data, to: caller }));
                 })
 
                 peer.on("stream", stream => {
@@ -744,7 +755,16 @@
             case "HEY":
                 caller = payload.from;
                 callerSignal = payload.signal;
-                payload.to === myUsername ? displayModal(caller) : null;
+                payload.to === myUsername ? displayCallModal(caller) : null;
+                break;
+            case "CALL-ACCEPTED":
+                payload.to === myUsername ? myPeer.signal(payload.signal) : null;
+                break;
+            case "CLOSE":
+                payload.to === myUsername ? window.location.reload() : null;
+                break;
+            case "REJECT":
+                payload.to ===  myUsername ? window.location.reload() : null;
                 break;
             default:
                 alert('Error');

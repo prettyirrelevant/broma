@@ -78,6 +78,21 @@ class ConversationConsumer(AsyncWebsocketConsumer):
                 },
             )
 
+        elif event == "conversations.chat":
+            await self.channel_layer.group_send(
+                self.conversation_room,
+                {
+                    "type": event,
+                    "data": text_data_json,
+                },
+            )
+
+    async def conversations_chat(self, event):
+        """
+        A function that handles everything related to chats.
+        """
+        ...
+
     async def conversations_video(self, event):
         """
         A function that handles everything related to video calls.
@@ -98,13 +113,38 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             )
 
         elif action == "ACCEPT":
-            ...
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "event": "conversations.video",
+                        "action": "CALL-ACCEPTED",
+                        "signal": event["data"]["signal"],
+                        "to": event["data"]["to"],
+                    }
+                )
+            )
 
         elif action == "END":
-            ...
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "event": "conversations.video",
+                        "action": "END",
+                        "to": event["data"]["to"],
+                    }
+                )
+            )
 
         elif action == "REJECT":
-            ...
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "event": "conversations.video",
+                        "action": "REJECT",
+                        "to": event["data"]["to"],
+                    }
+                )
+            )
 
     async def conversations_game(self, event):
         """
