@@ -162,6 +162,17 @@
 
     let board = [-1, -1, -1, -1, -1, -1, -1, -1, -1];
 
+    // function to flash message on screen
+    const flashMessage = (message, status) => {
+        return messagesDiv.insertAdjacentHTML(
+            "beforeend",
+            `
+                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
+                                                    ${message}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>`
+        );
+    };
     const WINS_INDICES = [
         [0, 1, 2],
         [3, 4, 5],
@@ -444,17 +455,5 @@
                 alert("Invalid event");
         }
     };
-
-    const flashMessage = (message, status) => {
-        return messagesDiv.insertAdjacentHTML(
-            "beforeend",
-            `
-                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
-                                                    ${message}
-                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                            </div>`
-        );
-    };
-
 </script>
 {% endblock scripts %}

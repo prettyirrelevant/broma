@@ -79,6 +79,17 @@
     },
     };
 
+    const flashMessage = (message, status) => {
+        return messagesDiv.insertAdjacentHTML(
+        "beforeend",
+        `
+                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
+                                                    ${message}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>`
+    );
+    };
+
     {% if not username %}
     pickUsernameBtn.onclick = (e) => {
     e.preventDefault();
@@ -158,7 +169,7 @@
     e.target.innerHTML +=
         ' <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-    fetch("{% url 'chats:create-conversation' %}", fetchPostOptions)
+    fetch("{% url 'conversations:create-conversation' %}", fetchPostOptions)
         .then((response) => {
             if (!response.ok) {
                 return Promise.reject(response);
@@ -212,7 +223,7 @@
 
     const body = JSON.stringify({ conversation_id: conversationIDInput });
 
-    fetch("{% url 'chats:join-conversation' %}", { ...fetchPostOptions, body })
+    fetch("{% url 'conversations:join-conversation' %}", { ...fetchPostOptions, body })
         .then((response) => {
             if (!response.ok) {
                 return Promise.reject(response);
@@ -248,17 +259,6 @@
     e.target.disabled = false;
     e.target.innerHTML = "Continue";
     conversationIdInputDiv.classList.remove("is-invalid");
-    };
-
-    const flashMessage = (message, status) => {
-    return messagesDiv.insertAdjacentHTML(
-        "beforeend",
-        `
-                                            <div class="alert alert-${status} alert-dismissible fade show" role="alert">
-                                                    ${message}
-                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                            </div>`
-    );
     };
     {% endif %}
 
