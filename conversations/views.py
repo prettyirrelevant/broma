@@ -121,7 +121,7 @@ def view_conversation(request: HttpRequest, id: str) -> HttpResponse:
     if conversation.creator == user or conversation.invitee == user:
         return render(
             request,
-            "chats/view_conversation.html",
+            "conversations/view_conversation.html",
             {
                 "title": f"Conversation {conversation.id} | Broma",
                 "conversation": conversation,
