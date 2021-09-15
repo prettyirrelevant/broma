@@ -7,11 +7,11 @@ authors = ["Adewumi Isaac <ienioladewumi@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 Django = "^3.2.7"
-djangorestframework = "^3.12.4"
 channels = "^3.0.4"
 django-environ = "^0.7.0"
 channels-redis = "^3.3.0"
 redis = "^3.5.3"
+psycopg2-binary = "^2.9.1"
 
 [tool.poetry.dev-dependencies]
 
