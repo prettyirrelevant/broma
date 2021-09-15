@@ -34,14 +34,6 @@ class ConversationConsumer(AsyncWebsocketConsumer):
         redis.sadd(f"conversation:{self.conversation_id}", self.user.username)
         await self.channel_layer.group_add(self.conversation_room, self.channel_name)
 
-        await self.channel_layer.group_send(
-            self.conversation_room,
-            {
-                "type": "conversations.online_users",
-                "data": list(redis.smembers(f"conversation:{self.conversation_id}")),
-            },
-        )
-
     async def disconnect(self, code):
         redis.srem(f"conversation:{self.conversation_id}", self.user.username)
 
@@ -66,6 +58,14 @@ class ConversationConsumer(AsyncWebsocketConsumer):
                 {
                     "type": event,
                     "data": text_data_json,
+                },
+            )
+        elif event == "conversations.online_users":
+            await self.channel_layer.group_send(
+                self.conversation_room,
+                {
+                    "type": "conversations.online_users",
+                    "data": list(redis.smembers(f"conversation:{self.conversation_id}")),
                 },
             )
 

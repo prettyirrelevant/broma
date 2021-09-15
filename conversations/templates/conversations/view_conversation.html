@@ -41,7 +41,7 @@
             </div>
         </div>
         {% else %}
-        <div class="alert alert-secondary d-flex align-items-center justify-content-between">
+        <div class="alert alert-secondary d-flex align-items-center justify-content-between" id="single-participant">
             <div>
                 <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -203,7 +203,7 @@
     const ws = new WebSocket(wsUrl, ["Token", "{{ username }}"]);
 
     ws.onopen = (e) => {
-        console.log(e);
+        ws.send(JSON.stringify({event: "conversations.online_users"}))
     };
 
     ws.onmessage = (e) => {
@@ -401,6 +401,34 @@
 
     const handleConversationOnlineUsers = (users) => {
         const allUsers = document.getElementsByClassName("online-user");
+
+        if (allUsers.length === 1) {
+            const singleParticipantDiv = document.getElementById("single-participant");
+
+            if (users.length === 2) {
+                singleParticipantDiv.innerHTML = `
+                <div>
+                    <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    ${users.length} participants
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-light position-relative" disabled>
+                        @${users[0]}
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle online-user" data-username="${users[0]}">
+                        <span class="visually-hidden">Online status</span>
+                    </span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light position-relative" disabled>
+                        @${users[1]}
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle online-user" data-username="${users[1]}">
+                        <span class="visually-hidden">Online status</span>
+                        </span>
+                    </button>
+                </div>`
+            }
+        }
 
         Array.from(allUsers).forEach((user) => {
             const myUsername = user.dataset.username;
