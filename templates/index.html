@@ -110,7 +110,7 @@
         return;
     }
 
-    if (!/^([a-z0-9]|[-._](?![-._])){4,25}$/.test(usernameInput)) {
+    if (!/^([a-zA-Z0-9]|[-._](?![-._])){4,25}$/.test(usernameInput)) {
         usernameInputDiv.classList.add("is-invalid");
         flashMessage(
             "Username is invalid! Please choose a valid one.",
