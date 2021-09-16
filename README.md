@@ -6,6 +6,9 @@ Basically a fun project where I implement certain technologies and learn too.
 - Real-Time Chat
 - Real-Time Tic Tac Toe
 
+## Demo
+A demo of the project can be found [here](https://broma.herokuapp.com).
+
 ## Development (Docker)
 - For easy replication of this project on your local machine, use the Docker configuration.
 - Populate the content of `.env.example` and rename to `.env`
