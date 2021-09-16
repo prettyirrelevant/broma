@@ -17,5 +17,5 @@ Basically a fun project where I implement certain technologies and learn too.
 
 ## Roadmap
 - [ ] Write testss.
-- [ ] Implement chat feature.
+- [x] Implement chat feature.
 - [ ] Store the state of a tictactoe game after every move.
