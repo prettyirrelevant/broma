@@ -51,7 +51,7 @@ ENV TARGET_ENV=production
 COPY --from=builder-base $VENV_PATH $VENV_PATH
 
 
-COPY . /app
+COPY .  /app
 WORKDIR /app
 
 COPY ./entrypoint.sh /entrypoint.sh

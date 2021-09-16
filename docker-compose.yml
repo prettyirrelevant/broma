@@ -4,8 +4,6 @@ services:
   web:
     build: ./
     command: runserver
-    volumes:
-      - ./:/app
     environment:
       - SECRET_KEY=${SECRET_KEY:-secret}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:?Allowed Hosts}
