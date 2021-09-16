@@ -17,5 +17,6 @@ Basically a fun project where I implement certain technologies and learn too.
 
 ## Roadmap
 - [ ] Write testss.
+- [ ] Implement cron job to delete conversations after 24 hours.
 - [x] Implement chat feature.
 - [ ] Store the state of a tictactoe game after every move.
