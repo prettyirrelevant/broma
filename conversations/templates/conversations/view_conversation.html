@@ -1,43 +1,39 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block head %}
 <style>
     table {
-        border-collapse: separate;
-        border-spacing: 0.2em;
+    border-collapse: separate;
+    border-spacing: 0.2em;
     }
-
     .myVideoContainer{
-        max-width: 10rem;
-        max-height: 10rem;
-        height: auto;
-        width: auto;
-        position: absolute;
-        top: 4.1rem;
-        left: 1.5rem;
-        z-index: 99;
+    max-width: 10rem;
+    max-height: 10rem;
+    height: auto;
+    width: auto;
+    position: absolute;
+    top: 2.1rem;
+    left: 1.5rem;
+    z-index: 99;
     }
-
     .myVideo{
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.06);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.06);
     }
-
     .recipientVideoContainer{
-        width: 100%;
-        height: 100%;
-        z-index: 99;
-        background-color: rgba(0,0,0,1);
+    width: 100%;
+    height: 100%;
+    z-index: 99;
+    background-color: rgba(0,0,0,1);
     }
-
     .recipientVideo{
-        width: 100%;
-        height: 100%;
+    width: 100%;
+    height: 100%;
     }
-
     .recipientVideo.cover{
-        object-fit: cover;
+    object-fit: cover;
     }
 </style>
 {% endblock head %}
@@ -96,7 +92,6 @@
             <button class="btn btn-success col mx-2" type="button" id="start-new-game">Start new game</button>
             <button class="btn btn-primary col mx-2" type="button" id="start-video-call">Start video call</button>
             <button class="btn btn-danger col mx-2" type="button" data-bs-toggle="modal" data-bs-target="#endCurrentGame" id="end-current-game-modal">End current game</button>
-
         </div>
         <!-- Tic Tac Toe Container -->
         <div class="card mt-5">
@@ -148,7 +143,6 @@
         </div>
     </div>
 </div>
-
 <!-- End current game modal -->
 <div id="endCurrentGame" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="endCurrentGame" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -167,9 +161,6 @@
         </div>
     </div>
 </div>
-
-
-
 <!-- Video call div  -->
 <div class="row justify-content-center">
     <div class="col-lg-10 my-1">
@@ -177,39 +168,86 @@
             <div class="card-header fw-bold text-center">
                 Video Call
             </div>
-
-            <div class="card-body">
-
+            <div class="card-body position-relative">
                 <!-- Participant video -->
                 <div class="recipientVideoContainer">
-                    <video poster="https://picsum.photos/200" class="recipientVideo rounded-3" playsinline muted autoplay></video>
+                    <video class="recipientVideo rounded-3" playsinline autoplay></video>
                 </div>
-
                 <!-- User video -->
                 <div class="myVideoContainer">
-                    <video poster="https://picsum.photos/200" class="myVideo rounded-3" playsinline muted autoplay></video>
+                    <video class="myVideo rounded-3" playsinline autoplay></video>
                 </div>
-
+                <!-- Controls -->
+                <button id="end-video-call" class="btn btn-danger border-pill position-absolute bottom-0 translate-middle start-50 mb-2 px-4">
+                    <svg width="24" height="24"  fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        <path d="M16.707 3.293a1 1 0 010 1.414L15.414 6l1.293 1.293a1 1 0 01-1.414 1.414L14 7.414l-1.293 1.293a1 1 0 11-1.414-1.414L12.586 6l-1.293-1.293a1 1 0 011.414-1.414L14 4.586l1.293-1.293a1 1 0 011.414 0z"></path>
+                    </svg>
+                    End call
+                </button>
             </div>
         </div>
     </div>
 </div>
-
 <!-- Chat div  -->
 <div class="row justify-content-center">
     <div class="col-lg-10 my-1">
-        <div class="card">
+        <div class="card mh-100">
             <div class="card-header fw-bold text-center">
                 Chat
             </div>
-
             <div class="card-body">
+                <div class="alert alert-info d-flex align-items-center" role="info">
+                    <svg class="me-2" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Please be civil and don't share personal information with strangers.
+                </div>
+                <div id="messages-feed" class="my-2">
+                    {% for message in convo_messages %}
+                    {% if message.sender.username == username %}
+                    <div class="justify-content-end d-flex">
+                        <div class="alert alert-secondary shadow-sm w-75" role="info">
+                            <!-- username -->
+                            <div class="d-flex justify-content-between">
+                                <small class="fw-bold">@{{ message.sender.username }}</small>
+                                <small></small>
+                            </div>
+                            {{ message.content }}
+                            <!-- date -->
+                            <div class="d-flex justify-content-between">
+                                <small></small>
+                                <small>{{ message.timestamp|naturaltime }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="justify-content-start d-flex">
+                        <div class="alert alert-dark shadow-sm w-75" role="info">
+                            <!-- username -->
+                            <div class="d-flex justify-content-between">
+                                <small class="fw-bold">@{{ message.sender.username }}</small>
+                                <small></small>
+                            </div>
+                            {{ message.content }}
+                            <!-- date -->
+                            <div class="d-flex justify-content-between">
+                                <small></small>
+                                <small>{{ message.timestamp|naturaltime }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="input-group">
+                    <textarea class="form-control" aria-label="Send message" id="message-input"></textarea>
+                    <button class="btn btn-secondary" type="button" id="send-message">Send</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-
 <!-- Calling Modal -->
 <div id="callingModal" class="modal fade" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="endCurrentGame" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -230,8 +268,13 @@
 {% endblock content %}
 {% block scripts %}
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/dayjs.min.js" integrity="sha256-DLRq9d+sak+DFd9tNntiDhbit2Ap2DBlVfh7l9o+LNM=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.7/plugin/relativeTime.js" integrity="sha256-muryXOPFkVJcJO1YFmhuKyXYmGDT2TYVxivG0MCgRzg=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.0/simplepeer.min.js" integrity="sha256-3oMweWrndCdkkax5au1C6gFBze9D5G6Q3t0kmaXRs+E=" crossorigin="anonymous"></script>
 <script>
+    // dayjs plugin init
+    dayjs.extend(window.dayjs_plugin_relativeTime);
+
     let wsUrl;
     let activeUsers;
 
@@ -252,6 +295,8 @@
 
     const acceptCallBtn = document.querySelector("#accept-call");
     const rejectCallBtn = document.querySelector("#reject-call");
+    const endCallBtn = document.querySelector("#end-video-call");
+
 
     const startVideoCallBtn = document.querySelector("#start-video-call");
     const myVideoDiv = document.getElementsByClassName("myVideo")[0];
@@ -259,6 +304,11 @@
 
     let myPeer;
     // end
+
+    // chat configuration
+    const sendMessageBtn = document.getElementById("send-message");
+    const messageInput = document.getElementById("message-input");
+    const messagesFeedDiv = document.getElementById("messages-feed");
 
     // Tic Tac Toe configurations
     const startNewGameBtn = document.querySelector("#start-new-game");
@@ -357,6 +407,10 @@
                 handleConversationVideoCall(payload);
                 break;
 
+            case "conversations.chat":
+                handleConversationChat(payload);
+                break;
+
             default:
                 alert("Invalid event!");
         }
@@ -373,6 +427,9 @@
 
     // you cannot end a game when it does not exist
     endCurrentGameModalBtn.disabled = true;
+
+    // you cannot end a call that has not started
+    endCallBtn.disabled = true;
 
     startNewGameBtn.onclick = (e) => {
         e.preventDefault();
@@ -402,17 +459,42 @@
     startVideoCallBtn.onclick = (e) => {
         const userToCall = activeUsers.find((user) => user != myUsername);
         callUser(userToCall);
+        startVideoCallBtn.disabled = true;
+        endCallBtn.disabled = false;
+
     };
 
     acceptCallBtn.onclick = (e) => {
         hideCallModal();
         acceptCall();
+        startVideoCallBtn.disabled = true;
+        endCallBtn.disabled = false;
+
     };
+
+    endCallBtn.onclick = (e) => {
+        endCall();
+        endCallBtn.disabled = true;
+    }
 
     rejectCallBtn.onclick = (e) => {
         hideCallModal();
         rejectCall();
+        startVideoCallBtn.disabled = false;
     };
+
+    sendMessageBtn.onclick = (e) => {
+        e.preventDefault()
+
+        const message = messageInput.value;
+        if (message === '') {
+            alert('Message input cannot be empty');
+        } else {
+            ws.send(JSON.stringify({event: 'conversations.chat', action: 'SEND', message, sender: myUsername, timestamp: new Date().toJSON()}));
+        }
+
+        messageInput.value = "";
+    }
 
     const resetGame = () => {
         startNewGameBtn.disabled = false;
@@ -555,7 +637,7 @@
 
     const endCall = () => {
         myPeer.destroy();
-        ws.send(JSON.stringify({event:'conversations.video', action: "END", to: caller}))
+        ws.send(JSON.stringify({event:'conversations.video', action: "END", to: caller}));
         window.location.reload();
     };
 
@@ -672,6 +754,47 @@
 
     };
 
+    const displayChatMessage = (message, sender, timestamp) => {
+        console.log(sender, myUsername)
+        if (sender === myUsername) {
+            const data = `
+                    <div class="justify-content-end d-flex">
+                        <div class="alert alert-secondary shadow-sm w-75" role="info">
+                            <!-- username -->
+                            <div class="d-flex justify-content-between">
+                                <small class="fw-bold">@${sender}</small>
+                                <small></small>
+                            </div>
+                            ${message}
+                            <!-- date -->
+                            <div class="d-flex justify-content-between">
+                                <small></small>
+                                <small>${dayjs(timestamp).fromNow()}</small>
+                            </div>
+                        </div>
+                    </div>`
+            messagesFeedDiv.innerHTML += data;
+        } else {
+            const data = `
+                    <div class="justify-content-start d-flex">
+                        <div class="alert alert-dark shadow-sm w-75" role="info">
+                            <!-- username -->
+                            <div class="d-flex justify-content-between">
+                                <small class="fw-bold">@${sender}</small>
+                                <small></small>
+                            </div>
+                            ${message}
+                            <!-- date -->
+                            <div class="d-flex justify-content-between">
+                                <small></small>
+                                <small>${timestamp}</small>
+                            </div>
+                        </div>
+                    </div>`
+            messagesFeedDiv.innerHTML += data;
+        }
+    }
+
     const handleConversationOnlineUsers = (users) => {
         const allUsers = document.getElementsByClassName("online-user");
 
@@ -755,7 +878,7 @@
                 resetGame();
                 break;
             default:
-                alert("Invalid event");
+                alert("Invalid event for conversations.game");
         }
     };
 
@@ -775,8 +898,21 @@
             case "REJECT":
                 payload.to ===  myUsername ? window.location.reload() : null;
                 break;
+            case "END":
+                payload.to ===  myUsername ? window.location.reload() : null;
+                break;
             default:
-                alert('Error');
+                alert('Invalid event for conversations.video');
+        }
+    };
+
+    const handleConversationChat = (payload) => {
+        switch (payload.action) {
+            case "RECEIVE":
+                displayChatMessage(payload.data.message, payload.data.sender, payload.data.timestamp);
+                break;
+            default:
+                alert('Invalid event for conversations.chat');
         }
     };
 </script>

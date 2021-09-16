@@ -125,6 +125,7 @@ def view_conversation(request: HttpRequest, id: str) -> HttpResponse:
             {
                 "title": f"Conversation {conversation.id} | Broma",
                 "conversation": conversation,
+                "convo_messages": conversation.messages.all(),
                 "username": username,
             },
         )

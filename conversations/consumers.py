@@ -4,9 +4,10 @@ from channels.db import database_sync_to_async
 from channels.exceptions import DenyConnection
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
+from django.utils import timezone
 from redis import StrictRedis
 
-from .models import Conversation, User
+from .models import Conversation, Message, User
 
 redis = StrictRedis.from_url(url=settings.REDIS_URL, encoding="utf-8", decode_responses=True)
 
@@ -18,6 +19,20 @@ def validate_connection(conversation, user) -> None:
 
     if user not in [conversation.creator, conversation.invitee]:
         raise DenyConnection()
+
+
+@database_sync_to_async
+def create_new_message(message: str, conversation_id: str, sender_username: str) -> dict:
+    conversation = Conversation.objects.get(id=conversation_id)
+    sender = User.objects.get(username=sender_username)
+
+    new_message = Message.objects.create(conversation=conversation, sender=sender, content=message)
+
+    return dict(
+        message=new_message.content,
+        sender=new_message.sender.username,
+        timestamp=new_message.timestamp.isoformat(),
+    )
 
 
 class ConversationConsumer(AsyncWebsocketConsumer):
@@ -91,7 +106,24 @@ class ConversationConsumer(AsyncWebsocketConsumer):
         """
         A function that handles everything related to chats.
         """
-        ...
+        action = event["data"]["action"]
+
+        if action == "SEND":
+            new_message_dict = await create_new_message(
+                event["data"]["message"],
+                self.conversation_id,
+                event["data"]["sender"],
+            )
+
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "event": "conversations.chat",
+                        "action": "RECEIVE",
+                        "data": new_message_dict,
+                    }
+                )
+            )
 
     async def conversations_video(self, event):
         """
