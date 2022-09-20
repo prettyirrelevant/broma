@@ -270,9 +270,9 @@ twisted-iocpsupport==1.0.2; python_full_version >= "3.6.7" and python_version >=
     --hash=sha256:3c61742cb0bc6c1ac117a7e5f422c129832f0c295af49e01d8a6066df8cfc04d \
     --hash=sha256:b435857b9efcbfc12f8c326ef0383f26416272260455bbca2cd8d8eca470c546 \
     --hash=sha256:7d972cfa8439bdcb35a7be78b7ef86d73b34b808c74be56dfa785c8a93b851bf
-twisted==21.7.0; python_full_version >= "3.6.7" and python_version >= "3.6" \
-    --hash=sha256:13c1d1d2421ae556d91e81e66cf0d4f4e4e1e4a36a0486933bee4305c6a4fb9b \
-    --hash=sha256:2cd652542463277378b0d349f47c62f20d9306e57d1247baabd6d1d38a109006
+twisted==22.4.0; python_full_version >= "3.6.7" and python_version >= "3.6" \
+    --hash=sha256:a047990f57dfae1e0bd2b7df2526d4f16dcdc843774dc108b78c52f2a5f13680 \
+    --hash=sha256:f9f7a91f94932477a9fc3b169d57f54f96c6e74a23d78d9ce54039a7f48928a2
 txaio==21.2.1; python_version >= "3.7" \
     --hash=sha256:c16b55f9a67b2419cfdf8846576e2ec9ba94fe6978a83080c352a80db31c93fb \
     --hash=sha256:7d6f89745680233f1c4db9ddb748df5e88d2a7a37962be174c0fd04c8dba1dc8
