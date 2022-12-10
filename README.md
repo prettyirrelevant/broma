@@ -7,7 +7,7 @@ Basically a fun project where I implement certain technologies and learn too.
 - Real-Time Tic Tac Toe
 
 ## Demo
-A demo of the project can be found [here](https://broma.herokuapp.com).
+A demo of the project can be found [here](https://bromaa.fly.dev).
 
 ## Development (Docker)
 - For easy replication of this project on your local machine, use the Docker configuration.
