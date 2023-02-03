@@ -6,7 +6,7 @@ authors = ["Adewumi Isaac <ienioladewumi@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-Django = "^3.2.7"
+Django = "^3.2.17"
 channels = "^3.0.4"
 django-environ = "^0.7.0"
 channels-redis = "^3.3.0"
