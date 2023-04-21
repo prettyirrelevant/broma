@@ -254,9 +254,9 @@ service-identity==21.1.0; python_full_version >= "3.6.7" and python_version >= "
 six==1.16.0; python_full_version >= "3.6.7" and python_version >= "3.6" \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926
-sqlparse==0.4.2; python_version >= "3.6" \
-    --hash=sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d \
-    --hash=sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae
+sqlparse==0.4.4; python_version >= "3.6" \
+    --hash=sha256:5430a4fe2ac7d0f93e66f1efc6e1338a41884b7ddf2a350cedd20ccc4d9d28f3 \
+    --hash=sha256:d446183e84b8349fa3061f0fe7f06ca94ba65b426946ffebe6e3e8295332420c
 twisted-iocpsupport==1.0.2; python_full_version >= "3.6.7" and python_version >= "3.6" and platform_system == "Windows" \
     --hash=sha256:72068b206ee809c9c596b57b5287259ea41ddb4774d86725b19f35bf56aa32a9 \
     --hash=sha256:985c06a33f5c0dae92c71a036d1ea63872ee86a21dd9b01e1f287486f15524b4 \
