@@ -6,13 +6,12 @@ Basically a fun project where I implement certain technologies and learn too.
 - Real-Time Chat
 - Real-Time Tic Tac Toe
 
-## Demo
-A demo of the project can be found [here](https://bromaa.fly.dev).
-
-## Development (Docker)
-- For easy replication of this project on your local machine, use the Docker configuration.
+## Development
+- Clone the repository
+- Create a virtual environment and install all dependencies.
 - Populate the content of `.env.example` and rename to `.env`
-- Run `docker-compose up -d --build`
+- Run `python manage.py migrate` to update the database tables' schemas.
+- Run `python manage.py runserver`
 - Visit `http://localhost:8000`
 
 ## Drawbacks
